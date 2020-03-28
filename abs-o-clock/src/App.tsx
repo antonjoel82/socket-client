@@ -1,6 +1,7 @@
 import React, { FC } from 'react'
 import socketInit, { SocketOps, EmptySocketOps } from './socket'
-import Room from './Room'
+import './App.css'
+import Routes from './Routes'
 
 interface Props {}
 
@@ -15,10 +16,10 @@ const App: FC<Props> = (props: Props) => {
   const socketOps = socketInit()
 
   return (
-    <div className='App'>
-      <header className='App-header'></header>
+    <div className='h-100'>
+      <header className=''></header>
       <SocketContext.Provider value={{ socketOps: socketOps }}>
-        <Room />
+        <Routes />
       </SocketContext.Provider>
     </div>
   )

@@ -31,7 +31,6 @@ export default function(): SocketOps {
   })
 
   function registerHandler(onMessageReceived: any) {
-    console.log(`Handler registered: ${onMessageReceived}`)
     socket.on('message', onMessageReceived)
   }
 

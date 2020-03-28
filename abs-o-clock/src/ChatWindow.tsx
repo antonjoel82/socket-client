@@ -1,11 +1,13 @@
 import React from 'react'
 import { SocketContext } from './App'
+import { RoomContext } from './Room'
 
 interface Props {
   chatHistory: string[]
 }
 
 const ChatWindow = (props: Props) => {
+  const { roomKey } = React.useContext(RoomContext)
   const { socketOps } = React.useContext(SocketContext)
   const { sendMessage, registerHandler } = socketOps
 
@@ -43,7 +45,7 @@ const ChatWindow = (props: Props) => {
       return
     }
 
-    sendMessage('room', msgText, (err: any) => {
+    sendMessage(roomKey, msgText, (err: any) => {
       if (err) {
         alert(err)
         return
@@ -58,14 +60,15 @@ const ChatWindow = (props: Props) => {
   }
 
   return (
-    <div>
-      <ul id='chatHistory'>
+    <div className='h-100 d-flex flex-column'>
+      <ul id='chatHistory' className='flex-grow-1'>
         {chatHistory.map((msg: string, index: number) => (
           <li key={`msg-${index}`}>{msg}</li>
         ))}
       </ul>
-      <form action='' onSubmit={handleMessageSubmit}>
+      <form className='d-flex' action='' onSubmit={handleMessageSubmit}>
         <input
+          className='flex-grow-1'
           name='msgInput'
           id='msgInput'
           autoComplete='off'
