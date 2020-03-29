@@ -1,9 +1,9 @@
 import React from 'react'
 import { SocketContext } from './App'
-import { RoomContext } from './Room'
+import { RoomContext, ChatHistoryEntry } from './Room'
 
 interface Props {
-  chatHistory: string[]
+  chatHistory: ChatHistoryEntry[]
 }
 
 const ChatWindow = (props: Props) => {
@@ -12,7 +12,7 @@ const ChatWindow = (props: Props) => {
   const { sendMessage, registerHandler } = socketOps
 
   const inputRef = React.useRef<HTMLInputElement>(null)
-  const [chatHistory, setChatHistory] = React.useState<string[]>(
+  const [chatHistory, setChatHistory] = React.useState<ChatHistoryEntry[]>(
     props.chatHistory
   )
 
@@ -24,7 +24,7 @@ const ChatWindow = (props: Props) => {
   //   [setChatHistory]
   // )
 
-  function handleMessageReceived(entry: string) {
+  function handleMessageReceived(entry: ChatHistoryEntry) {
     console.log(`Message received: ${entry}`)
     setChatHistory(_chatHistory => _chatHistory.concat(entry))
   }
@@ -62,8 +62,10 @@ const ChatWindow = (props: Props) => {
   return (
     <div className='h-100 d-flex flex-column'>
       <ul id='chatHistory' className='flex-grow-1'>
-        {chatHistory.map((msg: string, index: number) => (
-          <li key={`msg-${index}`}>{msg}</li>
+        {chatHistory.map((entry: ChatHistoryEntry, index: number) => (
+          <li key={`msg-${index}`}>
+            {`${entry.user?.name ?? 'User'}: ${entry.event}`}
+          </li>
         ))}
       </ul>
       <form className='d-flex' action='' onSubmit={handleMessageSubmit}>

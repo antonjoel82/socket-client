@@ -13,6 +13,16 @@ const DEFAULT_ROOM_CONTEXT: RoomContextType = {
   roomKey: '',
 }
 
+export interface User {
+  name?: string
+}
+
+export interface ChatHistoryEntry {
+  event: string
+  user: User
+  room: string
+}
+
 export const RoomContext = React.createContext(DEFAULT_ROOM_CONTEXT)
 
 interface Props {}
@@ -20,7 +30,7 @@ const Room = (props: Props) => {
   const { roomKey } = useParams()
   const { socketOps } = React.useContext(SocketContext)
   const { join } = socketOps
-  const [chatHistory, setChatHistory] = React.useState<string[]>([])
+  const [chatHistory, setChatHistory] = React.useState<ChatHistoryEntry[]>([])
 
   React.useEffect(() => {
     // alert(`Welcome to ${roomKey ?? 'your room'}`)
@@ -28,13 +38,12 @@ const Room = (props: Props) => {
 
     join(
       roomKey ?? 'UNKNOWN_ROOM',
-      (err: string | null, _chatHistory: string[]) => {
+      (err: string | null, _chatHistory: ChatHistoryEntry[]) => {
         if (err) {
           return console.error(err)
         }
 
         console.debug(`Joined room '${roomKey}'`)
-
         setChatHistory(_chatHistory)
       }
     )

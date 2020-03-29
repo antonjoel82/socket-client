@@ -4,9 +4,10 @@ export interface SocketOps {
   registerHandler: (onMessageReceived: any) => void
   unregisterHandler: () => void
   register: (name: string, cb: any) => void
-  join: (roomName: string, cb: any) => void
-  leave: (roomName: string, cb: any) => void
-  sendMessage: (roomName: string, msg: string, cb: any) => void
+  join: (roomKey: string, cb: any) => void
+  leave: (roomKey: string, cb: any) => void
+  sendMessage: (roomKey: string, msg: string, cb: any) => void
+  createRoom: (cb: (err: string | null, roomKey: string) => void) => void
   getRooms: (cb: any) => void
   getAvailableUsers: (cb: any) => void
 }
@@ -15,19 +16,21 @@ export const EmptySocketOps: SocketOps = {
   registerHandler: (onMessageReceived: any) => {},
   unregisterHandler: () => {},
   register: (name: string, cb: any) => {},
-  join: (roomName: string, cb: any) => {},
-  leave: (roomName: string, cb: any) => {},
-  sendMessage: (roomName: string, msg: string, cb: any) => {},
+  join: (roomKey: string, cb: any) => {},
+  leave: (roomKey: string, cb: any) => {},
+  sendMessage: (roomKey: string, msg: string, cb: any) => {},
+  createRoom: (cb: (err: string | null, roomKey: string) => void) => {},
   getRooms: (cb: any) => {},
   getAvailableUsers: (cb: any) => {},
 }
+
+export interface JoinRoomSuccess {}
 
 export default function(): SocketOps {
   const socket = SocketIOClient.connect('http://localhost:9999')
 
   socket.on('error', function(err: any) {
-    console.log('received socket error:')
-    console.log(err)
+    console.log(`Received socket error: ${err}`)
   })
 
   function registerHandler(onMessageReceived: any) {
@@ -42,17 +45,20 @@ export default function(): SocketOps {
     socket.emit('register', name, cb)
   }
 
-  function join(roomName: string, cb: any) {
-    socket.emit('join', roomName, cb)
+  function join(roomKey: string, cb: any) {
+    socket.emit('join', roomKey, cb)
   }
 
-  function leave(roomName: string, cb: any) {
-    socket.emit('leave', roomName, cb)
+  function leave(roomKey: string, cb: any) {
+    socket.emit('leave', roomKey, cb)
   }
 
-  function sendMessage(roomName: string, msg: string, cb: any) {
-    console.log(`Emitting message! ${msg}`)
-    socket.emit('message', { roomName, message: msg }, cb)
+  function sendMessage(roomKey: string, msg: string, cb: any) {
+    socket.emit('message', { roomKey, message: msg }, cb)
+  }
+
+  function createRoom(cb: (err: string | null, roomKey: string) => void) {
+    socket.emit('newRoom', cb)
   }
 
   function getRooms(cb: any) {
@@ -68,6 +74,7 @@ export default function(): SocketOps {
     join,
     leave,
     sendMessage,
+    createRoom,
     getRooms,
     getAvailableUsers,
     registerHandler,
