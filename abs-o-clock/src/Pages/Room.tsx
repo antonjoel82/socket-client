@@ -1,9 +1,10 @@
 import React from 'react'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
-import ChatWindow from './ChatWindow'
-import { useParams } from 'react-router-dom'
-import { SocketContext } from './App'
+import ChatWindow from '../Components/ChatWindow'
+import { useParams, useHistory } from 'react-router-dom'
+import { SocketContext } from '../App'
+import { User } from './Home'
 
 interface RoomContextType {
   roomKey: string
@@ -13,24 +14,42 @@ const DEFAULT_ROOM_CONTEXT: RoomContextType = {
   roomKey: '',
 }
 
-export interface User {
-  name?: string
-}
+export const RoomContext = React.createContext(DEFAULT_ROOM_CONTEXT)
 
+export type ChatHistoryEntryType = 'message' | 'system'
 export interface ChatHistoryEntry {
   event: string
   user: User
   room: string
+  type: ChatHistoryEntryType
 }
 
-export const RoomContext = React.createContext(DEFAULT_ROOM_CONTEXT)
+const BLANK_USER: User = { name: '', clientId: '' }
 
 interface Props {}
 const Room = (props: Props) => {
+  const history = useHistory()
+
   const { roomKey } = useParams()
   const { socketOps } = React.useContext(SocketContext)
-  const { join } = socketOps
+  const { join, getCurrentUser } = socketOps
   const [chatHistory, setChatHistory] = React.useState<ChatHistoryEntry[]>([])
+  const [user, setUser] = React.useState<User>(BLANK_USER)
+
+  React.useEffect(() => {
+    getCurrentUser((err: string | null, userFromServer: User) => {
+      if (err) {
+        console.error(err)
+        alert(
+          `You must create a username first! Re-directing to the home page...`
+        )
+        return history.push('/')
+      }
+
+      console.log(`User from Server: ${JSON.stringify(userFromServer)}`)
+      setUser(userFromServer)
+    })
+  }, [getCurrentUser, history])
 
   React.useEffect(() => {
     // alert(`Welcome to ${roomKey ?? 'your room'}`)
@@ -40,22 +59,23 @@ const Room = (props: Props) => {
       roomKey ?? 'UNKNOWN_ROOM',
       (err: string | null, _chatHistory: ChatHistoryEntry[]) => {
         if (err) {
-          return console.error(err)
+          console.error(err)
+          alert(`${err}\n\nRe-directing to home page...`)
+          return history.push('/')
         }
 
         console.debug(`Joined room '${roomKey}'`)
         setChatHistory(_chatHistory)
       }
     )
-  }, [roomKey, join])
+  }, [roomKey, join, history])
 
   return (
     <RoomContext.Provider value={{ roomKey: roomKey ?? '' }}>
       <Row className='h-100'>
         <Col xs={9} className='bg-secondary'></Col>
         <Col className='p-2'>
-          {/* TODO: Add chat history from back-end so no users see history! */}
-          <ChatWindow chatHistory={chatHistory} />
+          <ChatWindow chatHistory={chatHistory} user={user} />
         </Col>
       </Row>
     </RoomContext.Provider>

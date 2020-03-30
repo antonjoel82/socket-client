@@ -1,20 +1,22 @@
 import React from 'react'
-import { SocketContext } from './App'
-import { RoomContext, ChatHistoryEntry } from './Room'
+import { SocketContext } from '../App'
+import { RoomContext, ChatHistoryEntry } from '../Pages/Room'
+import ChatMessage from './ChatMessage/ChatMessage'
+import { User } from '../Pages/Home'
 
 interface Props {
+  user: User
   chatHistory: ChatHistoryEntry[]
 }
 
-const ChatWindow = (props: Props) => {
+const ChatWindow = ({ chatHistory, user }: Props) => {
+  // const { user } = React.useContext(UserContext)
   const { roomKey } = React.useContext(RoomContext)
   const { socketOps } = React.useContext(SocketContext)
   const { sendMessage, registerHandler } = socketOps
 
   const inputRef = React.useRef<HTMLInputElement>(null)
-  const [chatHistory, setChatHistory] = React.useState<ChatHistoryEntry[]>(
-    props.chatHistory
-  )
+  const [chats, setChats] = React.useState<ChatHistoryEntry[]>(chatHistory)
 
   // const handleMessageReceived = React.useCallback(
   //   (entry: string) => {
@@ -26,16 +28,23 @@ const ChatWindow = (props: Props) => {
 
   function handleMessageReceived(entry: ChatHistoryEntry) {
     console.log(`Message received: ${entry}`)
-    setChatHistory(_chatHistory => _chatHistory.concat(entry))
+    setChats(_chats => _chats.concat(entry))
   }
+
+  const isMessageFromActiveUser = React.useCallback(
+    (entryUser: User) => {
+      return user.clientId === entryUser.clientId
+    },
+    [user]
+  )
 
   React.useEffect(() => {
     registerHandler(handleMessageReceived)
   }, [registerHandler])
 
   React.useEffect(() => {
-    setChatHistory(props.chatHistory)
-  }, [props.chatHistory])
+    setChats(chatHistory)
+  }, [chatHistory])
 
   function handleMessageSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -61,13 +70,16 @@ const ChatWindow = (props: Props) => {
 
   return (
     <div className='h-100 d-flex flex-column'>
-      <ul id='chatHistory' className='flex-grow-1'>
-        {chatHistory.map((entry: ChatHistoryEntry, index: number) => (
-          <li key={`msg-${index}`}>
-            {`${entry.user?.name ?? 'User'}: ${entry.event}`}
-          </li>
+      {/* <ul id='chatHistory' className='flex-grow-1'> */}
+      <div className='d-flex flex-column flex-grow-1'>
+        {chats.map((entry: ChatHistoryEntry, index: number) => (
+          <ChatMessage
+            key={`msg-${index}`}
+            entry={entry}
+            fromUser={isMessageFromActiveUser(entry.user)}
+          />
         ))}
-      </ul>
+      </div>
       <form className='d-flex' action='' onSubmit={handleMessageSubmit}>
         <input
           className='flex-grow-1'

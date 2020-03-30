@@ -1,4 +1,5 @@
 import SocketIOClient from 'socket.io-client'
+import { User } from './Pages/Home'
 
 export interface SocketOps {
   registerHandler: (onMessageReceived: any) => void
@@ -9,6 +10,7 @@ export interface SocketOps {
   sendMessage: (roomKey: string, msg: string, cb: any) => void
   createRoom: (cb: (err: string | null, roomKey: string) => void) => void
   getRooms: (cb: any) => void
+  getCurrentUser: (cb: (err: string | null, user: User) => void) => void
   getAvailableUsers: (cb: any) => void
 }
 
@@ -21,6 +23,7 @@ export const EmptySocketOps: SocketOps = {
   sendMessage: (roomKey: string, msg: string, cb: any) => {},
   createRoom: (cb: (err: string | null, roomKey: string) => void) => {},
   getRooms: (cb: any) => {},
+  getCurrentUser: (cb: any) => {},
   getAvailableUsers: (cb: any) => {},
 }
 
@@ -62,7 +65,11 @@ export default function(): SocketOps {
   }
 
   function getRooms(cb: any) {
-    socket.emit('chatrooms', null, cb)
+    socket.emit('rooms', null, cb)
+  }
+
+  function getCurrentUser(cb: (err: string | null, user: User) => void) {
+    socket.emit('currentUser', cb)
   }
 
   function getAvailableUsers(cb: any) {
@@ -76,6 +83,7 @@ export default function(): SocketOps {
     sendMessage,
     createRoom,
     getRooms,
+    getCurrentUser,
     getAvailableUsers,
     registerHandler,
     unregisterHandler,
