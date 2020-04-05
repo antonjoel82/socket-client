@@ -27,23 +27,25 @@ const ChatWindow = ({ chatHistory, user }: Props) => {
   // )
 
   function handleMessageReceived(entry: ChatHistoryEntry) {
-    console.log(`Message received: ${entry}`)
+    console.log(`Message received: ${JSON.stringify(entry)}`)
     setChats(_chats => _chats.concat(entry))
   }
 
   const isMessageFromActiveUser = React.useCallback(
     (entryUser: User) => {
-      return user.clientId === entryUser.clientId
+      return !!user && !!entryUser && user.clientId === entryUser.clientId
     },
     [user]
   )
 
   React.useEffect(() => {
-    registerHandler(handleMessageReceived)
+    registerHandler('message', handleMessageReceived)
   }, [registerHandler])
 
   React.useEffect(() => {
-    setChats(chatHistory)
+    if (chatHistory) {
+      setChats(chatHistory)
+    }
   }, [chatHistory])
 
   function handleMessageSubmit(event: React.FormEvent) {
@@ -69,7 +71,7 @@ const ChatWindow = ({ chatHistory, user }: Props) => {
   }
 
   return (
-    <div className='h-100 d-flex flex-column'>
+    <div className='h-100 d-flex flex-column overflow-auto'>
       {/* <ul id='chatHistory' className='flex-grow-1'> */}
       <div className='d-flex flex-column flex-grow-1'>
         {chats.map((entry: ChatHistoryEntry, index: number) => (

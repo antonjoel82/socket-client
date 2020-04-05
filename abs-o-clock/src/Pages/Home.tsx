@@ -32,7 +32,8 @@ const Home = (props: Props) => {
   const { socketOps } = React.useContext(SocketContext)
   const { createRoom, register } = socketOps
 
-  const [roomKey, setRoomKey] = React.useState<string>('')
+  //TODO remove testRoom after debugging
+  const [roomKey, setRoomKey] = React.useState<string>('testRoom')
   const [name, setName] = React.useState<string>(cookieUserName)
   const [generatedKey, setGeneratedKey] = React.useState<string>('')
   // const [user, setUser] = React.useState<User>(BLANK_USER)

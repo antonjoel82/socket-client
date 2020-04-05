@@ -5,6 +5,9 @@ import ChatWindow from '../Components/ChatWindow'
 import { useParams, useHistory } from 'react-router-dom'
 import { SocketContext } from '../App'
 import { User } from './Home'
+import ExerciseWindow from '../ExerciseWindow'
+import Container from 'react-bootstrap/Container'
+import Button from 'react-bootstrap/Button'
 
 interface RoomContextType {
   roomKey: string
@@ -32,18 +35,22 @@ const Room = (props: Props) => {
 
   const { roomKey } = useParams()
   const { socketOps } = React.useContext(SocketContext)
-  const { join, getCurrentUser } = socketOps
+  const { join, leave, getCurrentUser } = socketOps
   const [chatHistory, setChatHistory] = React.useState<ChatHistoryEntry[]>([])
   const [user, setUser] = React.useState<User>(BLANK_USER)
+
+  // const [timerStatus, setTimerStatus] = React.useState<TimerStatus>(
+  //   TimerStatus.STOPPED
+  // )
 
   React.useEffect(() => {
     getCurrentUser((err: string | null, userFromServer: User) => {
       if (err) {
         console.error(err)
-        alert(
-          `You must create a username first! Re-directing to the home page...`
-        )
-        return history.push('/')
+        // alert(
+        //   `You must create a username first! Re-directing to the home page...`
+        // )
+        // return history.push('/')
       }
 
       console.log(`User from Server: ${JSON.stringify(userFromServer)}`)
@@ -60,8 +67,8 @@ const Room = (props: Props) => {
       (err: string | null, _chatHistory: ChatHistoryEntry[]) => {
         if (err) {
           console.error(err)
-          alert(`${err}\n\nRe-directing to home page...`)
-          return history.push('/')
+          // alert(`${err}\n\nRe-directing to home page...`)
+          // return history.push('/')
         }
 
         console.debug(`Joined room '${roomKey}'`)
@@ -70,14 +77,42 @@ const Room = (props: Props) => {
     )
   }, [roomKey, join, history])
 
+  function handleLeaveClick() {
+    if (!roomKey) {
+      throw new Error('Room Key not set some how??') //TODO remove this after verifying
+    }
+    leave(roomKey, (err?: string) => {
+      if (err) {
+        console.log(err)
+      }
+
+      history.push('/')
+    })
+  }
+
   return (
     <RoomContext.Provider value={{ roomKey: roomKey ?? '' }}>
-      <Row className='h-100'>
-        <Col xs={9} className='bg-secondary'></Col>
-        <Col className='p-2'>
-          <ChatWindow chatHistory={chatHistory} user={user} />
-        </Col>
-      </Row>
+      <Container fluid className='h-100'>
+        <Row>
+          <Col>
+            <div className='p-2 m-3 border border-dark rounded'>
+              <Button onClick={handleLeaveClick}>Leave</Button>
+            </div>
+          </Col>
+        </Row>
+        <Row className='h-100'>
+          <Col xs={8} className='h-100'>
+            <div className='p-2 m-3 border border-dark rounded h-75'>
+              <ExerciseWindow />
+            </div>
+          </Col>
+          <Col xs={4} className='h-100'>
+            <div className='p-2 m-3 border border-dark rounded h-75'>
+              <ChatWindow chatHistory={chatHistory} user={user} />
+            </div>
+          </Col>
+        </Row>
+      </Container>
     </RoomContext.Provider>
   )
 }

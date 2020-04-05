@@ -1,9 +1,10 @@
 import SocketIOClient from 'socket.io-client'
 import { User } from './Pages/Home'
+import TimerOps, { SocketTimerOps, EmptySocketTimerOps } from './socket-timers'
 
 export interface SocketOps {
-  registerHandler: (onMessageReceived: any) => void
-  unregisterHandler: () => void
+  registerHandler: (action: string, onActionReceived: any) => void
+  unregisterHandler: (action: string) => void
   register: (name: string, cb: any) => void
   join: (roomKey: string, cb: any) => void
   leave: (roomKey: string, cb: any) => void
@@ -12,11 +13,12 @@ export interface SocketOps {
   getRooms: (cb: any) => void
   getCurrentUser: (cb: (err: string | null, user: User) => void) => void
   getAvailableUsers: (cb: any) => void
+  timerOps: SocketTimerOps
 }
 
 export const EmptySocketOps: SocketOps = {
-  registerHandler: (onMessageReceived: any) => {},
-  unregisterHandler: () => {},
+  registerHandler: (action: string, onActionReceived: any) => {},
+  unregisterHandler: (action: string) => {},
   register: (name: string, cb: any) => {},
   join: (roomKey: string, cb: any) => {},
   leave: (roomKey: string, cb: any) => {},
@@ -25,6 +27,7 @@ export const EmptySocketOps: SocketOps = {
   getRooms: (cb: any) => {},
   getCurrentUser: (cb: any) => {},
   getAvailableUsers: (cb: any) => {},
+  timerOps: EmptySocketTimerOps,
 }
 
 export interface JoinRoomSuccess {}
@@ -36,12 +39,12 @@ export default function(): SocketOps {
     console.log(`Received socket error: ${err}`)
   })
 
-  function registerHandler(onMessageReceived: any) {
-    socket.on('message', onMessageReceived)
+  function registerHandler(action: string, onActionReceived: any) {
+    socket.on(action, onActionReceived)
   }
 
-  function unregisterHandler() {
-    socket.off('message')
+  function unregisterHandler(action: string) {
+    socket.off(action)
   }
 
   function register(name: string, cb: any) {
@@ -76,6 +79,11 @@ export default function(): SocketOps {
     socket.emit('availableUsers', null, cb)
   }
 
+  /**
+   * TIMERS
+   */
+  const timerOps = TimerOps(socket)
+
   return {
     register,
     join,
@@ -87,5 +95,6 @@ export default function(): SocketOps {
     getAvailableUsers,
     registerHandler,
     unregisterHandler,
+    timerOps,
   }
 }
