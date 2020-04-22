@@ -2,9 +2,11 @@ import React, { useEffect } from 'react'
 import Container from 'react-bootstrap/Container'
 import Button from 'react-bootstrap/Button'
 import { SocketContext } from './App'
-import { ChatHistoryEntry } from './Pages/Room'
+import { ChatHistoryEntry, RoomContext } from './Pages/Room'
 
-interface Props {}
+interface Props {
+  // roomKey: string;
+}
 
 interface TimeInfo {
   hours?: number
@@ -49,6 +51,8 @@ const Timer = ({ duration, status }: TimerProps) => {
 }
 
 const ExerciseWindow = (props: Props) => {
+  const { roomKey } = React.useContext(RoomContext)
+
   const [status, setStatus] = React.useState<TimerStatus>(TimerStatus.STOPPED)
   const { socketOps } = React.useContext(SocketContext)
   const { timerOps, registerHandler, unregisterHandler } = socketOps
@@ -89,8 +93,7 @@ const ExerciseWindow = (props: Props) => {
   }, [registerHandler, unregisterHandler])
 
   function handleStartTimerClick() {
-    // TODO! Remove hardcoded room name
-    startTimer('testRoom', (err?: string) => {
+    startTimer(roomKey, (err?: string) => {
       if (err) {
         alert(err)
       }
@@ -100,8 +103,7 @@ const ExerciseWindow = (props: Props) => {
   }
 
   function handlePauseTimerClick() {
-    // TODO! Remove hardcoded room name
-    pauseTimer('testRoom', (err?: string) => {
+    pauseTimer(roomKey, (err?: string) => {
       if (err) {
         alert(err)
       }
